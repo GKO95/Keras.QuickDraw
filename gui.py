@@ -98,6 +98,3 @@ class MainWindow(QMainWindow):
         painter.end()
         self.update()
         return super().paintEvent(event)
-
-
-# https://forum.qt.io/topic/64693/unable-to-paint-on-qt-widget-shows-error-paintengine-should-no-longer-be-called/2
