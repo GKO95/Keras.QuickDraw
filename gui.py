@@ -21,7 +21,9 @@ class QCanvas(QLabel):
 
     """ EVENT: MOUSE MOVE WHILE PRESSED """
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        self.strokes[-1].append((event.x(), event.y()))
+        if event.x() > 0 and event.y() > 0 and event.x() <= self.width() and event.y() <= self.height():
+            self.strokes[-1].append((event.x(), event.y()))
+        else: return
         return super().mouseMoveEvent(event)
 
     """ EVENT: MOUSE RELEASE """
@@ -54,16 +56,34 @@ class QCanvas(QLabel):
 
     """ EVENT: UPON SHOWN """
     def showEvent(self, event: QShowEvent) -> None:
+        self.blankCanvas()
+        return super().showEvent(event)
+
+    """ METHOD: CREATE CANVAS """
+    def blankCanvas(self) -> None:
         margin = self.parentWidget().layout().margin()
         width = self.topLevelWidget().width()
         height = self.topLevelWidget().height()
         for index in range(self.parentWidget().layout().count()):
             if index != self.parentWidget().layout().indexOf(self): 
-                height -= ( self.parentWidget().layout().itemAt(index).widget().height() + margin * 2)
+                height -= (self.parentWidget().layout().itemAt(index).widget().height() + margin * 2)
         canvas = QBitmap(width - margin * 2, height)
         canvas.clear()
         self.setPixmap(canvas)
-        return super().showEvent(event)
+        self.update()
+
+    """ METHOD: RESET CANVAS """
+    def resetCanvas(self) -> None:
+        self.strokes = []
+        self.blankCanvas()
+
+    """ METHOD: UNDO CANVAS """
+    def undoCanvas(self) -> None:
+        try:
+            self.strokes.pop()
+        except IndexError:
+            print("The canvas is completely empty!")
+        self.blankCanvas()
 
 
 class MainWindow(QMainWindow):
@@ -78,17 +98,18 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(800, 600))
         self.setFixedSize(QSize(800, 600))
         self.setWindowIcon(QIcon("res/eon-icon.png"))
-        self.setStyleSheet("background-color: blue")
 
         # INITIALIZE: WINDOW CENTRAL
         self.widget_central = QWidget(self)
         self.widget_central.setObjectName("Window Central")
+        self.widget_central.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout_central = QBoxLayout(QBoxLayout.TopToBottom, self.widget_central)
         self.setCentralWidget(self.widget_central)
 
         # INITIALIZE: CENTRAL HEADER
         self.widget_header = QWidget(self.widget_central)
         self.widget_header.setObjectName("Widget Header")
+        self.widget_header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.widget_header_indicater = QLabel(parent = self.widget_header)
         self.widget_header_caption   = QLabel("(TARGET)", self.widget_header)
         self.widget_header_counter   = QLabel(parent = self.widget_header)
@@ -98,26 +119,30 @@ class MainWindow(QMainWindow):
         self.layout_header.addWidget(self.widget_header_caption  , 1, Qt.AlignCenter)
         self.layout_header.addWidget(self.widget_header_counter  , 0, Qt.AlignRight)
 
-        # INITIALIZE: CENTRAL BUTTONS
-        self.widget_footer = QWidget(self.widget_central)
-        self.widget_footer.setObjectName("Widget Footer")
-        self.widget_footer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.widget_footer_clear = QPushButton("Clear", self.widget_footer)
-
-        self.layout_footer = QBoxLayout(QBoxLayout.LeftToRight, self.widget_footer)
-        self.layout_footer.addWidget(self.widget_footer_clear, 1)
-
         # INITIALIZE: CENTRAL CANVAS
         self.widget_canvas = QCanvas(self.widget_central)
         self.widget_canvas.setObjectName("Widget Canvas")
         self.widget_canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        # INITIALIZE: CENTRAL BUTTONS
+        self.widget_footer = QWidget(self.widget_central)
+        self.widget_footer.setObjectName("Widget Footer")
+        self.widget_footer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.widget_footer_clear = QPushButton("Clear", self.widget_footer)
+        self.widget_footer_clear.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget_footer_clear.clicked.connect(self.widget_canvas.resetCanvas)
+        self.widget_footer_undo  = QPushButton("Undo", self.widget_footer)
+        self.widget_footer_undo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget_footer_undo.clicked.connect(self.widget_canvas.undoCanvas)
+
+        self.layout_footer = QBoxLayout(QBoxLayout.LeftToRight, self.widget_footer)
+        self.layout_footer.addWidget(self.widget_footer_undo, 0)
+        self.layout_footer.addWidget(self.widget_footer_clear, 0)
+        self.layout_footer.setMargin(0)
+
         # LAYOUT: HEADER + CANVAS + FOOTER -> CENTRAL WINDOW CENTRAL
-        self.layout_central.addWidget(self.widget_header, 0, Qt.AlignHCenter)
+        self.layout_central.addWidget(self.widget_header, 0)
         self.layout_central.addWidget(self.widget_canvas, 1, Qt.AlignCenter)
-        self.layout_central.addWidget(self.widget_footer, 0, Qt.AlignHCenter)
+        self.layout_central.addWidget(self.widget_footer, 0)
 
         self.show()
-
-    def paintEvent(self, event: QPaintEvent) -> None:
-        return super().paintEvent(event)
