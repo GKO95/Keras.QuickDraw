@@ -1,7 +1,3 @@
----
-layout: repo
-title: "Keras: Quick, Draw! Replication"
----
 # Keras.QuickDraw
 Originally a team project of the Department of Electronic Engineering students at Kyonggi University (lead by GKO95), it aims to replicate Google's "Quick, Draw!" online game as close as possible.
 
