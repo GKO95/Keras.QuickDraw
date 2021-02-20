@@ -2,14 +2,94 @@
 # PySide2 API
 #   https://doc.qt.io/qtforpython/api.html
 #===============================================================
-from PySide2.QtGui import QBitmap, QIcon, QPainter, QPen, QPaintEvent, QMouseEvent, QShowEvent
-from PySide2.QtCore import QSize, Qt
+from PySide2.QtGui import QBitmap, QIcon, QPainter, QPen, QPaintEvent, QMouseEvent, QShowEvent, QCloseEvent
+from PySide2.QtCore import QSize, Qt, QBuffer
 from PySide2.QtWidgets import QLabel, QMainWindow, QPushButton, QSizePolicy, QWidget, QBoxLayout
 
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.buffer = QBuffer()
+        self.buffer.open(QBuffer.ReadWrite)
+        self.setupUI()
+
+    """ USER INTERFACE SETUP """
+    def setupUI(self):
+        # WINDOW SETUP
+        self.setWindowTitle("Keras.QuickDraw")
+        self.setMinimumSize(QSize(800, 600))
+        self.setFixedSize(QSize(800, 600))
+        self.setWindowIcon(QIcon("res/eon-icon.png"))
+
+        # INITIALIZE: WINDOW CENTRAL
+        self.widget_central = QWidget(self)
+        self.widget_central.setObjectName("Window Central")
+        self.widget_central.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.layout_central = QBoxLayout(QBoxLayout.TopToBottom, self.widget_central)
+        self.setCentralWidget(self.widget_central)
+
+        # INITIALIZE: CENTRAL HEADER
+        self.widget_header = QWidget(self.widget_central)
+        self.widget_header.setObjectName("Widget Header")
+        self.widget_header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.widget_header_indicater = QLabel(parent = self.widget_header)
+        self.widget_header_caption   = QLabel("(TARGET)", self.widget_header)
+        self.widget_header_counter   = QLabel(parent = self.widget_header)
+        
+        self.layout_header = QBoxLayout(QBoxLayout.LeftToRight, self.widget_header)
+        self.layout_header.addWidget(self.widget_header_indicater, 0, Qt.AlignLeft)
+        self.layout_header.addWidget(self.widget_header_caption  , 1, Qt.AlignCenter)
+        self.layout_header.addWidget(self.widget_header_counter  , 0, Qt.AlignRight)
+
+        # INITIALIZE: CENTRAL CANVAS
+        self.widget_canvas = QCanvas(self.widget_central, self)
+        self.widget_canvas.setObjectName("Widget Canvas")
+        self.widget_canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # INITIALIZE: CENTRAL BUTTONS
+        self.widget_footer = QWidget(self.widget_central)
+        self.widget_footer.setObjectName("Widget Footer")
+        self.widget_footer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.widget_footer_clear = QPushButton("Clear", self.widget_footer)
+        self.widget_footer_clear.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget_footer_clear.clicked.connect(self.widget_canvas.resetCanvas)
+        self.widget_footer_undo  = QPushButton("Undo", self.widget_footer)
+        self.widget_footer_undo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.widget_footer_undo.clicked.connect(self.widget_canvas.undoCanvas)
+
+        self.layout_footer = QBoxLayout(QBoxLayout.LeftToRight, self.widget_footer)
+        self.layout_footer.addWidget(self.widget_footer_undo, 0)
+        self.layout_footer.addWidget(self.widget_footer_clear, 0)
+        self.layout_footer.setMargin(0)
+
+        # LAYOUT: HEADER + CANVAS + FOOTER -> CENTRAL WINDOW CENTRAL
+        self.layout_central.addWidget(self.widget_header, 0)
+        self.layout_central.addWidget(self.widget_canvas, 1, Qt.AlignCenter)
+        self.layout_central.addWidget(self.widget_footer, 0)
+
+        self.show()
+
+    """ EVENT: SAVING CANVAS (QThread ALTERNATIVE) """
+    def paintEvent(self, event: QPaintEvent) -> None:
+        # SCREENSHOT WIDGET OF QPaintDevice, SUCH AS QBITMAP
+        self.widget_canvas.render(self.widget_canvas.pixmap())
+        if self.isVisible:
+            self.widget_canvas.pixmap().save(self.buffer, "BMP")
+            #self.widget_canvas.pixmap().save(".\\res\\buff.bmp", "BMP")
+        return super().paintEvent(event)
+
+    """ EVENT: CLOSING MAINWINDOW """
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.buffer.close()
+        return super().closeEvent(event)
+
+
 class QCanvas(QLabel):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)        
+    def __init__(self, parent: QWidget, window: MainWindow):
+        super().__init__(parent)
+        self.pWindow = window
         self.strokes = []
+        self.buffer = QBuffer()
         self.painter = QPainter()
         self.setStyleSheet("background-color: white;")
     
@@ -28,9 +108,6 @@ class QCanvas(QLabel):
 
     """ EVENT: MOUSE RELEASE """
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
-        # SCREENSHOT WIDGET OF QPaintDevice, SUCH AS QBITMAP
-        self.render(self.pixmap())
-        self.pixmap().save("./res/buff.bmp", "BMP")
         return super().mouseReleaseEvent(event)
 
     """ EVENT: UPDATE PAINT 
@@ -84,65 +161,3 @@ class QCanvas(QLabel):
         except IndexError:
             print("The canvas is completely empty!")
         self.blankCanvas()
-
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setupUI()
-
-    """ USER INTERFACE SETUP """
-    def setupUI(self):
-        # WINDOW SETUP
-        self.setWindowTitle("Keras.QuickDraw")
-        self.setMinimumSize(QSize(800, 600))
-        self.setFixedSize(QSize(800, 600))
-        self.setWindowIcon(QIcon("res/eon-icon.png"))
-
-        # INITIALIZE: WINDOW CENTRAL
-        self.widget_central = QWidget(self)
-        self.widget_central.setObjectName("Window Central")
-        self.widget_central.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.layout_central = QBoxLayout(QBoxLayout.TopToBottom, self.widget_central)
-        self.setCentralWidget(self.widget_central)
-
-        # INITIALIZE: CENTRAL HEADER
-        self.widget_header = QWidget(self.widget_central)
-        self.widget_header.setObjectName("Widget Header")
-        self.widget_header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.widget_header_indicater = QLabel(parent = self.widget_header)
-        self.widget_header_caption   = QLabel("(TARGET)", self.widget_header)
-        self.widget_header_counter   = QLabel(parent = self.widget_header)
-        
-        self.layout_header = QBoxLayout(QBoxLayout.LeftToRight, self.widget_header)
-        self.layout_header.addWidget(self.widget_header_indicater, 0, Qt.AlignLeft)
-        self.layout_header.addWidget(self.widget_header_caption  , 1, Qt.AlignCenter)
-        self.layout_header.addWidget(self.widget_header_counter  , 0, Qt.AlignRight)
-
-        # INITIALIZE: CENTRAL CANVAS
-        self.widget_canvas = QCanvas(self.widget_central)
-        self.widget_canvas.setObjectName("Widget Canvas")
-        self.widget_canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        # INITIALIZE: CENTRAL BUTTONS
-        self.widget_footer = QWidget(self.widget_central)
-        self.widget_footer.setObjectName("Widget Footer")
-        self.widget_footer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.widget_footer_clear = QPushButton("Clear", self.widget_footer)
-        self.widget_footer_clear.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.widget_footer_clear.clicked.connect(self.widget_canvas.resetCanvas)
-        self.widget_footer_undo  = QPushButton("Undo", self.widget_footer)
-        self.widget_footer_undo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.widget_footer_undo.clicked.connect(self.widget_canvas.undoCanvas)
-
-        self.layout_footer = QBoxLayout(QBoxLayout.LeftToRight, self.widget_footer)
-        self.layout_footer.addWidget(self.widget_footer_undo, 0)
-        self.layout_footer.addWidget(self.widget_footer_clear, 0)
-        self.layout_footer.setMargin(0)
-
-        # LAYOUT: HEADER + CANVAS + FOOTER -> CENTRAL WINDOW CENTRAL
-        self.layout_central.addWidget(self.widget_header, 0)
-        self.layout_central.addWidget(self.widget_canvas, 1, Qt.AlignCenter)
-        self.layout_central.addWidget(self.widget_footer, 0)
-
-        self.show()
