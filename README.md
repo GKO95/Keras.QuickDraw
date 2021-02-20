@@ -8,3 +8,4 @@ Originally a team project of the Department of Electronic Engineering students a
     * SciPy: 1.4.1
   * PySide2: 5.15.2
   * matplotlib: 3.3.3
+    * Pillow: 8.1.0
