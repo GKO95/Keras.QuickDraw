@@ -3,10 +3,8 @@
 #   https://doc.qt.io/qtforpython/api.html
 #===============================================================
 from PySide2.QtGui import QBitmap, QIcon, QPainter, QPen, QPaintEvent, QMouseEvent, QShowEvent, QCloseEvent
-from PySide2.QtCore import QSize, Qt, QBuffer
+from PySide2.QtCore import QSize, Qt, QBuffer, QThread, QTime
 from PySide2.QtWidgets import QLabel, QMainWindow, QPushButton, QSizePolicy, QWidget, QBoxLayout
-from PIL import Image
-import io
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -86,29 +84,57 @@ class MainWindow(QMainWindow):
         return super().closeEvent(event)
 
 
+class QModel(QThread):
+    def __init__(self):
+        ...
+
+
 class QCanvas(QLabel):
     def __init__(self, parent: QWidget, window: MainWindow):
         super().__init__(parent)
         self.pWindow = window
-        self.strokes = []
+        self.strokeX = []
+        self.strokeY = []
+        self.strokeT = []
+        self.timing = QTime()
+        self.timing.start()
+        self.paused = 0
         self.painter = QPainter()
         self.setStyleSheet("background-color: white;")
     
     """ EVENT: MOUSE CLICK/PRESS """
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        self.strokes.append(list())
-        self.strokes[-1].append((event.x(), event.y()))
+        self.timing.restart()
+        self.strokeX.append(list())
+        self.strokeY.append(list())
+        self.strokeT.append(list())
+        self.strokeX[-1].append(event.x())
+        self.strokeY[-1].append(event.y())
+        self.strokeT[-1].append(self.paused)
         return super().mousePressEvent(event)
 
     """ EVENT: MOUSE MOVE WHILE PRESSED """
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         if event.x() > 0 and event.y() > 0 and event.x() <= self.width() and event.y() <= self.height():
-            self.strokes[-1].append((event.x(), event.y()))
+            # IF DRAWING IS NOT JUST A MERE POINT...
+            if len(self.strokeT[-1]) == 1:
+                self.timing.restart()
+                self.paused += 1
+            self.strokeX[-1].append(event.x())
+            self.strokeY[-1].append(event.y())
+            self.strokeT[-1].append(self.timing.elapsed() + self.paused)
         else: return
         return super().mouseMoveEvent(event)
 
     """ EVENT: MOUSE RELEASE """
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        # TO ABLE TO RECOGNIZE POINTS AS PART OF THE DRAWING...
+        if len(self.strokeT[-1]) == 1:
+            self.paused += 1
+        # OTHERWISE, CHECKPOINTS THE MILLISECONDS AS FOLLOWS.
+        else:
+            self.paused += (self.timing.elapsed() + 1)
+        print(self.strokeT[-1])
         #img = Image.open(io.BytesIO(self.pWindow.buffer.data()))
         #img.show()
         return super().mouseReleaseEvent(event)
@@ -123,13 +149,13 @@ class QCanvas(QLabel):
         pen.setColor(Qt.color1)  
         self.painter.begin(self)
         self.painter.setPen(pen)
-        if len(self.strokes) != 0:
-            for stroke in self.strokes:
-                if len(stroke) == 1:
-                    self.painter.drawPoint(stroke[0][0], stroke[0][1])
+        if len(self.strokeX) != 0:
+            for stroke in range(len(self.strokeX)):
+                if len(self.strokeX[stroke]) == 1:
+                    self.painter.drawPoint(self.strokeX[stroke][0], self.strokeY[stroke][0])
                 else:
-                    for index in range(len(stroke) - 1):
-                        self.painter.drawLine(stroke[index][0], stroke[index][1], stroke[index+1][0], stroke[index+1][1])
+                    for index in range(len(self.strokeX[stroke]) - 1):
+                        self.painter.drawLine(self.strokeX[stroke][index], self.strokeY[stroke][index], self.strokeX[stroke][index+1], self.strokeY[stroke][index+1])
         self.painter.end()
         self.update()
         return super().paintEvent(event)
@@ -154,13 +180,19 @@ class QCanvas(QLabel):
 
     """ METHOD: RESET CANVAS """
     def resetCanvas(self) -> None:
-        self.strokes = []
+        self.strokeX = []
+        self.strokeY = []
+        self.strokeT = []
+        self.paused = 0
         self.blankCanvas()
 
     """ METHOD: UNDO CANVAS """
     def undoCanvas(self) -> None:
         try:
-            self.strokes.pop()
+            self.paused = self.strokeT[-1][0]
+            self.strokeX.pop()
+            self.strokeY.pop()
+            self.strokeT.pop()
         except IndexError:
             print("The canvas is completely empty!")
         self.blankCanvas()
