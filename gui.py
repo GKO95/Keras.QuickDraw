@@ -5,6 +5,8 @@
 from PySide2.QtGui import QBitmap, QIcon, QPainter, QPen, QPaintEvent, QMouseEvent, QShowEvent, QCloseEvent
 from PySide2.QtCore import QSize, Qt, QBuffer
 from PySide2.QtWidgets import QLabel, QMainWindow, QPushButton, QSizePolicy, QWidget, QBoxLayout
+from PIL import Image
+import io
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -74,8 +76,8 @@ class MainWindow(QMainWindow):
         # SCREENSHOT WIDGET OF QPaintDevice, SUCH AS QBITMAP
         self.widget_canvas.render(self.widget_canvas.pixmap())
         if self.isVisible:
+            self.buffer.reset()
             self.widget_canvas.pixmap().save(self.buffer, "BMP")
-            #self.widget_canvas.pixmap().save(".\\res\\buff.bmp", "BMP")
         return super().paintEvent(event)
 
     """ EVENT: CLOSING MAINWINDOW """
@@ -89,7 +91,6 @@ class QCanvas(QLabel):
         super().__init__(parent)
         self.pWindow = window
         self.strokes = []
-        self.buffer = QBuffer()
         self.painter = QPainter()
         self.setStyleSheet("background-color: white;")
     
@@ -108,6 +109,8 @@ class QCanvas(QLabel):
 
     """ EVENT: MOUSE RELEASE """
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        #img = Image.open(io.BytesIO(self.pWindow.buffer.data()))
+        #img.show()
         return super().mouseReleaseEvent(event)
 
     """ EVENT: UPDATE PAINT 
