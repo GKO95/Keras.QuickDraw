@@ -9,3 +9,36 @@ Originally a team project of the Department of Electronic Engineering students a
   * PySide2: 5.15.2
   * matplotlib: 3.3.3
     * Pillow: 8.1.0
+
+## Dataset
+Total 30 NumPy datasets are selected that has similar shapes and traits.
+* Ant
+* Bee
+* Bird
+* Butterfly
+* Circle
+* Cow
+* Dog
+* Dolphin
+* Donut
+* Dragon
+* Fish
+* Grass
+* Lightning
+* Line
+* Mermaid
+* Mosquito
+* Mountain
+* Rain
+* River
+* Shark
+* Snake
+* Spider
+* Square
+* Star
+* Stitches
+* Sun
+* Triangle
+* Watermelon
+* Whale
+* Wheel
