@@ -5,6 +5,9 @@
 from PySide2.QtGui import QBitmap, QIcon, QPainter, QPen, QPaintEvent, QMouseEvent, QShowEvent, QCloseEvent
 from PySide2.QtCore import QSize, Qt, QBuffer, QThread, QTime
 from PySide2.QtWidgets import QLabel, QMainWindow, QPushButton, QSizePolicy, QWidget, QBoxLayout
+from PIL import Image
+import numpy as np
+import io
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -13,13 +16,16 @@ class MainWindow(QMainWindow):
         self.buffer.open(QBuffer.ReadWrite)
         self.setupUI()
 
+        self.model = QModel(self)
+        self.model.start()
+
     """ USER INTERFACE SETUP """
     def setupUI(self):
         # WINDOW SETUP
         self.setWindowTitle("Keras.QuickDraw")
         self.setMinimumSize(QSize(800, 600))
         self.setFixedSize(QSize(800, 600))
-        self.setWindowIcon(QIcon("res/eon-icon.png"))
+        self.setWindowIcon(QIcon("favicon.ico"))
 
         # INITIALIZE: WINDOW CENTRAL
         self.widget_central = QWidget(self)
@@ -76,17 +82,26 @@ class MainWindow(QMainWindow):
         if self.isVisible:
             self.buffer.reset()
             self.widget_canvas.pixmap().save(self.buffer, "BMP")
+            np.array(Image.open(io.BytesIO(self.buffer.data())))
         return super().paintEvent(event)
 
     """ EVENT: CLOSING MAINWINDOW """
     def closeEvent(self, event: QCloseEvent) -> None:
+        self.model.terminate()
+        self.model.wait()
         self.buffer.close()
         return super().closeEvent(event)
 
 
 class QModel(QThread):
-    def __init__(self):
-        ...
+    def __init__(self, window: MainWindow):
+        super().__init__(window)
+        self.pWindow = window
+
+    def run(self):
+        while(True):
+            QThread.msleep(100)
+            npQDraw = np.array(Image.open(io.BytesIO(self.pWindow.buffer.data())))
 
 
 class QCanvas(QLabel):
@@ -134,9 +149,6 @@ class QCanvas(QLabel):
         # OTHERWISE, CHECKPOINTS THE MILLISECONDS AS FOLLOWS.
         else:
             self.paused += (self.timing.elapsed() + 1)
-        print(self.strokeT[-1])
-        #img = Image.open(io.BytesIO(self.pWindow.buffer.data()))
-        #img.show()
         return super().mouseReleaseEvent(event)
 
     """ EVENT: UPDATE PAINT 
