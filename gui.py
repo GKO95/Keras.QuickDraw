@@ -82,7 +82,6 @@ class MainWindow(QMainWindow):
         if self.isVisible:
             self.buffer.reset()
             self.widget_canvas.pixmap().save(self.buffer, "BMP")
-            np.array(Image.open(io.BytesIO(self.buffer.data())))
         return super().paintEvent(event)
 
     """ EVENT: CLOSING MAINWINDOW """
