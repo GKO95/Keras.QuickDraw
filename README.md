@@ -1,6 +1,44 @@
-# QuickDraw.keras_cnn
-This is a team project done by students in Kyonggi University to duplicate the Google's Quick, Draw! online game as close as possible.
-Since the pre-processed dataset is used directly by downloading to local directory, all of those huge-size dataset files could not be
-uploaded to GitHub due to upload restriction to 100 MB.
+# Keras.QuickDraw
+Originally a team project of the Department of Electronic Engineering students at Kyonggi University (lead by GKO95), it aims to replicate Google's "Quick, Draw!" online game as close as possible.
 
-For those who want to see complete project, the OneDrive link is provided where the project with the report handed in on final evaluation can be downloaded [here](https://1drv.ms/u/s!Agn_rXycf1K4gYlDqAnb7RarCeaWEg).
+## Dependency
+* Python: 3.8.7
+  * TensorFlow: 2.3.0
+    * NumPy: 1.18.5
+    * SciPy: 1.4.1
+  * PySide2: 5.15.2
+  * matplotlib: 3.3.3
+    * Pillow: 8.1.0
+
+## Dataset
+Total 30 NumPy datasets are selected that has similar shapes and traits.
+* Ant
+* Bee
+* Bird
+* Butterfly
+* Circle
+* Cow
+* Dog
+* Dolphin
+* Donut
+* Dragon
+* Fish
+* Grass
+* Lightning
+* Line
+* Mermaid
+* Mosquito
+* Mountain
+* Rain
+* River
+* Shark
+* Snake
+* Spider
+* Square
+* Star
+* Stitches
+* Sun
+* Triangle
+* Watermelon
+* Whale
+* Wheel
