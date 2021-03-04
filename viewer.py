@@ -57,6 +57,6 @@ def npyView(subject, index = 0):
     plt.show()
 
 
-""" TRAINING MODEL """
+""" VISUALIZE NUMPY TRAINING DATA """
 if __name__ == "__main__":
     npyView("fish", 117)
