@@ -8,6 +8,7 @@ plt.rcParams['toolbar'] = 'toolmanager'
 class ToolNext(ToolBase):
     description = 'View next data'
     image = 'forward'
+    default_keymap = 'right'
     
     def trigger(self, *args, **kwargs):
         plt.clf()
@@ -21,6 +22,7 @@ class ToolNext(ToolBase):
 class ToolPrev(ToolBase):
     description = 'View previous data'
     image = 'back'
+    default_keymap = 'left'
     
     def trigger(self, *args, **kwargs):
         plt.clf()
@@ -44,6 +46,7 @@ class npyViewer(figure.Figure):
 #=============================================================
 def npyView(subject, index = 0):
     fig = plt.figure(FigureClass=npyViewer, dataset = np.load("./dataset/full_numpy_bitmap_"+subject+".npy"), index = index)
+    fig.canvas.set_window_title("Dataset Visualizer")
 
     fig.canvas.manager.toolmanager.remove_tool('back')
     fig.canvas.manager.toolmanager.remove_tool('forward')
