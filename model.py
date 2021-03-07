@@ -81,7 +81,7 @@ the fact that the pooling operation returns a single scalar is the same:
     * Padding: 0 when padding is set to 'valid'
 
     Output: 
-      => size: [Input - Kernel + 1 + (2 * Padding)] / Stride
+      => size: [(Input - Kernel + (2 * Padding)) / Stride] + 1
       => shape: (size, size, depth)
       ...but if the output size is not an integer, the strides are incorrect!
 
