@@ -64,7 +64,7 @@ layerConv2D_1 = tf.keras.layers.Conv2D(
     strides = (1, 1),           # The amount of pixels to shift the kernel.
     padding = 'valid',          # Leave the input data AS IS wihtout any padding ('valid').
     activation = 'relu',        # Activation function (default: None).
-    input_shape = (28, 28, 1)   # First Conv2D must specify the shape of input: 28 x 28 Grayscale channel 
+    input_shape = (28, 28, 1),  # First Conv2D must specify the shape of input: 28 x 28 Grayscale channel 
 )
 
 """ 2D MAX POOLING LAYER
@@ -96,7 +96,7 @@ the fact that the pooling operation returns a single scalar is the same:
 layerMaxPooling2D_1 = tf.keras.layers.MaxPool2D(
     pool_size = (2, 2),         # The size of a pooling window in the Conv2D layer.
     strides = (2, 2),           # The amount of pixels to shift a pooling window.
-    padding = 'valid'           # Leave the input data AS IS wihtout any padding ('valid').
+    padding = 'valid',          # Leave the input data AS IS wihtout any padding ('valid').
 )
 
 """ OUTPUT
@@ -105,11 +105,16 @@ layerMaxPooling2D_1 = tf.keras.layers.MaxPool2D(
       => shape: (10, 10, 64)
 
 DO NOT MISTAKEN: this does not mean the overall activation maps have increased
-from 32 to 64 matrixes. The 64 output depth is "per" input data. Therefore, 
-previous 32 activation maps will become 32 * 64 = 2048 activation maps.
+from 32 to 64 matrixes. The 64 output depth is "per" input data. Because there
+were previously 32 activation maps from 'layerConv2D_1', each activation maps 
+having its own 64 activation maps from 'layerConv2D_2' makes 32 * 64 = 2048 
+activation maps in total.
+
+However, what's important is not the number of total activation maps.
+It is the output shape, eg. (10, 10, 64) that matters the most!
 """
 layerConv2D_2 = tf.keras.layers.Conv2D(
-    filter = 64,
+    filters = 64,
     kernel_size = (3, 3),
 )
 
@@ -119,10 +124,68 @@ layerConv2D_2 = tf.keras.layers.Conv2D(
       => shape: (5, 5, 64)
 """
 layerMaxPooling2D_2 = tf.keras.layers.MaxPool2D(
-    pool_size = (2, 2)
+    pool_size = (2, 2),
 )
 
+""" OUTPUT
+      >> Input = (5, 5), Depth = 64, Kernel = (3, 3), Stride = (1, 1)...
+      => size: [(5 - 3 + (2 * 0)) / 1] + 1 = 3
+      => shape: (3, 3, 64)
+
+In this case, there is no MaxPool2D layer followed by this Conv2D layer.
+It does not matter since MaxPool2D is just to compress the size of activation maps.
+
+TOTAL ACTIVATION MAPS: 32 -> 2048 (= 32 * 64) -> 131072 (= 32 * 64 * 64)
+Remember, what is more important is not the total number of activation maps
+but the output shape from the 'layerConv2D_3' Conv2D layer.
+"""
+layerConv2D_3 = tf.keras.layers.Conv2D(
+    filters = 64,
+    kernel_size= (3, 3),
+)
+
+""" FLATTEN LAYER
+The Flatten layer compresses not just the size of the input data (that is,
+output data from 'layerConv2D_3' layer) but "reshapes" to a single dimensional
+tensor for a Dense layer.
+
+Considering the output shape from 'layerConv2D_3' layer was (None, 3, 3, 64),
+the layer flattens the tensor to (None, 576) which is 3 * 3 * 64 = 576.
+
+Here, the None in the very front of the tensor shape indicates the support for
+any batch size (dynamic)!
+"""
+layerFlatten = tf.keras.layers.Flatten()
+
+""" DENSE LAYER
+The Dense (aka. fully-connected) layer
+"""
+layerDense_1 = tf.keras.layers.Dense(
+    units = 64,
+    activation = 'relu',
+)
+
+layerDense_2 = tf.keras.layers.Dense(
+    units = 30,
+)
+
+""" SEQUENTIAL MODEL
+
+"""
+model = tf.keras.models.Sequential(
+    layers = [
+        layerConv2D_1,
+        layerMaxPooling2D_1,
+        layerConv2D_2,
+        layerMaxPooling2D_2,
+        layerConv2D_3,
+        layerFlatten,
+        layerDense_1,
+        layerDense_2,
+    ],
+    name = "QModel",
+)
 
 """ TRAINING MODEL """
 if __name__ == "__main__":
-    ...
+    model.summary()
