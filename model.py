@@ -21,13 +21,13 @@ The output size is determined by the following formula:
     * Padding: 0 when padding is set to 'valid'
 
     Output: 
-      => size: [(Input - Kernel + (2 * Padding)) / (Stride)] + 1
+      => size: [Input - Kernel + 1 + (2 * Padding)] / Stride
       => shape: (size, size, depth)
       ...but if the output size is not an integer, the strides are incorrect!
 
     Example:
       >> Input = (28, 28), Depth = 32, Kernel = (5, 5), Stride = (1, 1)...
-      => size: ([28 - 5] / 1) + 1 = 24
+      => size: [28 - 5 + 1 + (2 * 0)] / 1 = 24
       => shape: (24, 24, 32)
 
 
@@ -60,7 +60,7 @@ layerConv2D_1 = tf.keras.layers.Conv2D(
 """ 2D MAX POOLING LAYER 
 
 """
-layerMaxPooling2D_1 = tf.keras.layers.MaxPooling2D(
+layerMaxPooling2D_1 = tf.keras.layers.MaxPool2D(
     pool_size = (2, 2)          # 
 )
 
