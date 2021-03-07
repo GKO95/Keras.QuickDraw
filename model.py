@@ -4,9 +4,9 @@ import tensorflow.keras as keras
 """ 2D CONVOLUTION LAYER 
 > Reference: https://en.wikipedia.org/wiki/Convolutional_neural_network#Convolutional_layer
 
-The Conv2D layer has a depth of filters (aka. a number of kernels) that detects 
-certain pixel pattern using convolution operation. These kernels stride/shift along 
-the input data pixels-by-pixels, resulting a single scalar value:
+The Conv2D layer has a depth of filters (aka. a number of kernels; 32 or 64) that 
+detects certain pixel pattern using convolution operation. These kernels stride/shift 
+along the input data pixels-by-pixels, resulting a single scalar value:
 
     Conv2D Operation -> Summation of element-wise multiplication
 
@@ -72,6 +72,9 @@ The MaxPool2D layer works similar to Conv2D; when kernel operates convolution
 that gives a single scalar, MaxPooling gives a MAX value within the window.
 This compresses the activation maps that only leave the significants.
 
+MaxPooling layer does not increase the depth of the activation maps. It only
+shrinks the size of currently existing activation maps.
+
 
 The calculation formual on deriving output size is the same as Conv2D's since
 the fact that the pooling operation returns a single scalar is the same:
@@ -86,15 +89,39 @@ the fact that the pooling operation returns a single scalar is the same:
       ...but if the output size is not an integer, the strides are incorrect!
 
     Example:
-      >> Input = (24, 24), Depth = 40, Kernel = (2, 2), Stride = (2, 2)...
+      >> Input = (24, 24), Window = (2, 2), Stride = (2, 2)...
       => size: [(24 - 2 + (2 * 0)) / 2] + 1 = 12
-      => shape: (12, 12, 40)
+      => shape: (12, 12, 32)
 """
 layerMaxPooling2D_1 = tf.keras.layers.MaxPool2D(
     pool_size = (2, 2),         # The size of a pooling window in the Conv2D layer.
     strides = (2, 2),           # The amount of pixels to shift a pooling window.
     padding = 'valid'           # Leave the input data AS IS wihtout any padding ('valid').
 )
+
+""" OUTPUT
+      >> Input = (12, 12), Depth = 64, Kernel = (3, 3), Stride = (1, 1)...
+      => size: [(12 - 3 + (2 * 0)) / 1] + 1 = 10
+      => shape: (10, 10, 64)
+
+DO NOT MISTAKEN: this does not mean the overall activation maps have increased
+from 32 to 64 matrixes. The 64 output depth is "per" input data. Therefore, 
+previous 32 activation maps will become 32 * 64 = 2048 activation maps.
+"""
+layerConv2D_2 = tf.keras.layers.Conv2D(
+    filter = 64,
+    kernel_size = (3, 3),
+)
+
+""" OUTPUT
+      >> Input = (10, 12), Window = (2, 2), Stride = (2, 2)...
+      => size: [(10 - 2 + (2 * 0)) / 2] + 1 = 5
+      => shape: (5, 5, 64)
+"""
+layerMaxPooling2D_2 = tf.keras.layers.MaxPool2D(
+    pool_size = (2, 2)
+)
+
 
 """ TRAINING MODEL """
 if __name__ == "__main__":
