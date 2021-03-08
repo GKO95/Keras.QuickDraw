@@ -158,15 +158,24 @@ any batch size (dynamic)!
 layerFlatten = tf.keras.layers.Flatten()
 
 """ DENSE LAYER
-The Dense (aka. fully-connected) layer
+The Dense (aka. fully-connected) layer is where the training parameters and
+forward propagation for hypothesis/prediction occurs. Previous layers
+(eg. Conv2D, MaxPool2D, Flatten) are just to extract the characteristics & traits
+for image classification that is stored in activation maps.
 """
 layerDense_1 = tf.keras.layers.Dense(
-    units = 64,
+    units = 192,
     activation = 'relu',
 )
 
 layerDense_2 = tf.keras.layers.Dense(
+    units = 64,
+    activation = 'relu',
+)
+
+layerSoftmax = tf.keras.layers.Dense(
     units = 30,
+    activation = 'softmax',
 )
 
 """ SEQUENTIAL MODEL
@@ -174,14 +183,18 @@ layerDense_2 = tf.keras.layers.Dense(
 """
 model = tf.keras.models.Sequential(
     layers = [
+        # INPUT LAYER
         layerConv2D_1,
         layerMaxPooling2D_1,
         layerConv2D_2,
         layerMaxPooling2D_2,
         layerConv2D_3,
         layerFlatten,
+        # HIDDEN LAYER
         layerDense_1,
         layerDense_2,
+        # OUTPUT LAYER
+        layerSoftmax,
     ],
     name = "QModel",
 )
