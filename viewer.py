@@ -1,4 +1,6 @@
+import os
 import numpy as np
+
 import matplotlib.pyplot as plt
 from matplotlib import figure
 from matplotlib.backend_tools import ToolBase
@@ -44,9 +46,16 @@ class npyViewer(figure.Figure):
 #=============================================================
 # NUMPY DATASET: 28 x 28 pixel (Grayscale)
 #=============================================================
-def npyView(subject, index = 0):
-    fig = plt.figure(FigureClass=npyViewer, dataset = np.load("./dataset/full_numpy_bitmap_"+subject+".npy"), index = index)
-    fig.canvas.set_window_title("Dataset Visualizer")
+def npyView(subject: int, index = 0):
+    DATADIR = "./dataset"
+    DATASET = [name for name in os.listdir(DATADIR) if os.path.isfile(os.path.join(DATADIR, name))]
+
+    try:
+        fig = plt.figure(FigureClass=npyViewer, dataset = np.load(os.path.join(DATADIR, DATASET[subject])), index = index)
+        fig.canvas.set_window_title("Dataset Visualizer")
+    except IndexError:
+        print("OUT OF RANGE: range(0, 30)")
+        return
 
     fig.canvas.manager.toolmanager.remove_tool('back')
     fig.canvas.manager.toolmanager.remove_tool('forward')
@@ -62,4 +71,4 @@ def npyView(subject, index = 0):
 
 """ VISUALIZE NUMPY TRAINING DATA """
 if __name__ == "__main__":
-    npyView("fish", 117)
+    npyView(10, 117)
