@@ -1,5 +1,10 @@
 import tensorflow as tf
 import tensorflow.keras as keras
+import matplotlib.pyplot as plt
+
+import numpy as np
+import random
+import os
 
 """ 2D CONVOLUTION LAYER 
 > Reference: https://en.wikipedia.org/wiki/Convolutional_neural_network#Convolutional_layer
@@ -181,7 +186,7 @@ layerSoftmax = tf.keras.layers.Dense(
 """ SEQUENTIAL MODEL
 
 """
-model = tf.keras.models.Sequential(
+MODEL = tf.keras.models.Sequential(
     layers = [
         # INPUT LAYER
         layerConv2D_1,
@@ -201,4 +206,55 @@ model = tf.keras.models.Sequential(
 
 """ TRAINING MODEL """
 if __name__ == "__main__":
-    model.summary()
+
+    # DATASET: Training preparation.
+    DATADIR  = "./dataset"
+    DATASET  = [name for name in os.listdir(DATADIR) if os.path.isfile(os.path.join(DATADIR, name))]
+    DIVIDER  = {"train": 15000, "valid": 7500, "test": 2500}
+
+    _COUNTER_  = [0] * len(DATASET)
+    _INSTANCE_ = []
+    random.seed()
+
+    # SELECT & STORE DATA
+    _TRAIN_      = np.ndarray(shape=(0, DIVIDER["train"], 28*28))  # training data (60%) + validation data (20%)
+    _TEST_       = np.ndarray(shape=(0, DIVIDER["test"],  28*28))  # test data (20%)
+    for index in range(len(DATASET)):
+        instance = np.load(os.path.join(DATADIR, DATASET[index]))
+        _TRAIN_ = np.append(_TRAIN_, np.expand_dims(np.array(instance)[::7][:DIVIDER["train"]], axis = 0), axis = 0)
+        print(_TRAIN_.shape)
+        _VALID_ = np.append(_VALID_, np.expand_dims(np.flipud(instance)[::11][:DIVIDER["valid"]], axis = 0), axis = 0)
+        print(_VALID_.shape)
+        _TEST_  = np.append(_TEST_, np.expand_dims(np.flipud(instance)[::11][DIVIDER["valid"]:DIVIDER["valid"] + DIVIDER["test"],:], axis = 0), axis = 0)
+        print(_TEST_.shape)
+
+        _INSTANCE_ = np.append(_INSTANCE_, DATASET[index].split('.')[0].split('_')[-1])
+        print("Loading dataset (" + str(index + 1) + "/" + str(len(DATASET)) + ")...")
+
+    # SUMMARY: Provides brief summary on its model structure.
+    MODEL.summary()
+
+    """ COMPILE (AKA. CONFIGURATION)
+    The 'compile' method is responsible on configuring the model, such as
+    selecting the optimzier and loss.
+
+    >> Optimizer
+        * SGD (Stochastic Gradient Descent)
+          : Uses gradient descent to reach the minimum loss.
+    """
+    MODEL.compile(
+        optimizer = 'adam',
+        loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True),
+    )
+
+    while(True):
+        INDEX = int(random.random() * 1000) % len(DATASET)
+        if not _COUNTER_[INDEX] < DIVIDER["train"]:
+            ...
+            continue
+        feature = _TRAIN_[INDEX, _COUNTER_[INDEX]].reshape((28, 28, 1))
+        label   = _INSTANCE_[INDEX]
+        MODEL.fit(feature, label)
+
+
+
