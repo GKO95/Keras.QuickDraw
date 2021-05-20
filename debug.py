@@ -28,10 +28,23 @@ def Index():
     random.seed()
     return int(random.random() * 1000) % len(DATAFILE)
 
-# RANDOM INSTANCE SELECTOR FROM A DATASET
-def Instance(instance: int = 0):
+# RANDOM INSTANCE SELECTOR FROM A DATASET(S)
+def Instance(index: int = 0, batch: int = 0, mixed: bool = False):
     index = Index()
-    return np.load(os.path.join(DATAPATH, DATAFILE[index]))[instance].reshape([1, 28, 28, 1]) / 255, index
+    y_data = list()
+
+    if batch > 0:
+        x_data = list() if mixed else np.load(os.path.join(DATAPATH, DATAFILE[index]))[index:index+batch].reshape([batch, 28, 28, 1]) / 255
+
+        for iter in range(batch):
+            index = Index() if mixed else index
+            if mixed: x_data.append(np.load(os.path.join(DATAPATH, DATAFILE[index]))[index+iter].reshape([28, 28, 1]) / 255)
+            y_data.append(tf.one_hot(index, len(DATANAME)).numpy())
+    else:
+        x_data = np.load(os.path.join(DATAPATH, DATAFILE[index]))[index].reshape([1, 28, 28, 1]) / 255
+        y_data = tf.one_hot(index, len(DATANAME)).numpy()
+    
+    return np.array(x_data, dtype='f4'), np.array(y_data, dtype='f4')
 
 def Sequence(instance):
     layerConv2D_1 = tf.keras.layers.Conv2D(
@@ -100,5 +113,5 @@ def Sequence(instance):
 
 
 if __name__ == "__main__":
-    instance, _ = Instance()
-    Sequence(instance)
+    x_train, y_train = Instance(index = 30, batch = 0, mixed = True)
+    Sequence(x_train)
