@@ -17,7 +17,7 @@ DATAFILE = [file for file in os.listdir(DATAPATH) if os.path.isfile(os.path.join
 """ DATANAME =
 ['ant', 'bee', 'bird', 'butterfly', 'circle', 'cow', 'dog', 'dolphin', 'donut', 'dragon',
  'fish', 'grass', 'lightning', 'line', 'mermaid', 'mosquito', 'mountain', 'rain', 'river', 'shark', 
-  'snake', 'spider', 'square', 'star', 'stitches', 'sun', 'triangle', 'watermelon', 'whale', 'wheel']
+ 'snake', 'spider', 'square', 'star', 'stitches', 'sun', 'triangle', 'watermelon', 'whale', 'wheel']
 """
 DATANAME = [name.split('.')[0].split('_')[-1] for name in DATAFILE]
 

@@ -8,7 +8,7 @@ import os
 
 # DATASET: Training preparation.
 BINPATH  = "bin"
-DATAPATH = "dataset"
+DATAPATH = "datasets"
 DATAFILE = [file for file in os.listdir(DATAPATH) if os.path.isfile(os.path.join(DATAPATH, file))]
 DATANAME = [name.split('.')[0].split('_')[-1] for name in DATAFILE]
 DATANUMB = [0] * len(DATAFILE)
