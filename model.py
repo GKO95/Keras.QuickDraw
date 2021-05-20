@@ -6,6 +6,20 @@ import numpy as np
 import random
 import os
 
+""" TRAINING DATASET:
+np.load(os.path.join(DATAPATH, DATAFILE[INDEX])) = 
+
+    [[0 0 0 ... 0 0 0]   <- 0th INSTANCE (len: 784 = 28 * 28)
+     [0 0 0 ... 0 0 0]   <- 1st INSTANCE
+     [0 0 0 ... 0 0 0]   <- 2nd INSTANCE
+     ...
+     [0 0 0 ... 0 0 0]   <- Xth INSTANCE
+     [0 0 0 ... 0 0 0]   <- Yth INSTANCE
+     [0 0 0 ... 0 0 0]]  <- Zth INSTANCE
+
+shape: (???, 784)
+"""
+
 # DATASET: Training preparation.
 BINPATH  = "bin"
 DATAPATH = "datasets"
